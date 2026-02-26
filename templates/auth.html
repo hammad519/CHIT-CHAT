@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CHIT CHAT — Auth</title>
+
+<link rel="icon" type="image/png" href="/static/Images/chit_chat.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --charcoal: #1A1C23;
+  --muted: #8E9BAE;
+  --sand: #E1D9BC;
+  --ivory: #F0F0DB;
+  --card-radius: 40px;
+  --shadow: 0 30px 60px rgba(0,0,0,0.12);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:'Plus Jakarta Sans', sans-serif;
+}
+
+html,body{
+  height:100%;
+}
+
+.fullscreen-wrapper{
+  width:100%;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg, var(--ivory) 0%, #FFFFFF 50%, var(--sand) 100%);
+  position:relative;
+  color:var(--charcoal);
+}
+
+/* BACKGROUND GLOW */
+.bg-glow{
+  position:absolute;
+  width:600px;
+  height:600px;
+  background:radial-gradient(circle, var(--sand) 0%, transparent 70%);
+  filter:blur(100px);
+  opacity:0.3;
+  z-index:1;
+  animation:floatGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes floatGlow{
+  0%{ transform:translate(-250px,150px); }
+  100%{ transform:translate(250px,-150px); }
+}
+
+.container{
+  width:90%;
+  max-width:840px;
+  height:500px;
+  display:flex;
+  border-radius:var(--card-radius);
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  border:1px solid rgba(255,255,255,0.8);
+  box-shadow:var(--shadow);
+  z-index:10;
+  overflow:hidden;
+  position:relative;
+}
+
+/* LEFT PANEL */
+.left{
+  width:42%;
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:linear-gradient(160deg, rgba(225,217,188,0.2) 0%, transparent 100%);
+}
+
+.text-stage{
+  min-height:160px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  margin-bottom:20px;
+  transition:opacity 0.4s ease, transform 0.4s ease;
+}
+
+.text-stage.fade-out{
+  opacity:0;
+  transform:translateY(20px);
+}
+
+.text-stage.fade-in{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.left h1{
+  font-size:34px;
+  font-weight:800;
+  margin-bottom:12px;
+  line-height:1.1;
+}
+
+.left p{
+  font-size:14px;
+  color:rgba(26,28,35,0.7);
+  line-height:1.6;
+}
+
+.btn-toggle{
+  padding:12px 24px;
+  border-radius:14px;
+  background:var(--charcoal);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+  width:fit-content;
+  transition:0.2s;
+}
+
+.btn-toggle:hover{
+  transform:scale(1.05);
+}
+
+/* RIGHT PANEL */
+.right{
+  width:58%;
+  padding:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+}
+
+.card{
+  width:100%;
+  max-width:340px;
+  display:flex;
+  flex-direction:column;
+}
+
+.brand-section{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.brand-section img{
+  width:35px;
+  height:35px;
+}
+
+.brand-section h3{
+  margin:0;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+/* TABS */
+.tab-nav{
+  display:flex;
+  background:#F4F5F0;
+  padding:5px;
+  border-radius:16px;
+  margin-bottom:25px;
+}
+
+.tab-item{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:12px;
+  color:var(--muted);
+  transition:0.3s;
+}
+
+.tab-item.active{
+  background:#fff;
+  color:var(--charcoal);
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* SLIDER */
+.overflow-wrapper{
+  overflow:hidden;
+  width:100%;
+  padding-bottom:10px;
+}
+
+.form-slider{
+  display:flex;
+  width:200%;
+  transition:transform 0.5s cubic-bezier(.22,.9,.3,1);
+}
+
+.form-page{
+  flex:0 0 50%;
+  padding:0 10px 10px 10px;
+}
+
+/* INPUTS */
+.input-row{
+  display:flex;
+  gap:12px;
+}
+
+.input-group{
+  margin-bottom:14px;
+  flex:1;
+}
+
+.input-group label{
+  display:block;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  color:var(--muted);
+  letter-spacing:0.5px;
+}
+
+.input-wrapper{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+.input-group input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid #EAEBE6;
+  background:#F9FAFB;
+  font-size:14px;
+  color:var(--charcoal);
+  outline:none;
+  transition:0.2s;
+}
+
+.input-group input:focus{
+  border-color:var(--sand);
+  background:#fff;
+  box-shadow:0 0 0 2px rgba(225,217,188,0.4);
+}
+
+.pass-toggle{
+  position:absolute;
+  right:14px;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:800;
+  color:var(--muted);
+  user-select:none;
+}
+
+/* BUTTON */
+.primary-btn{
+  width:100%;
+  padding:15px;
+  border-radius:16px;
+  background:var(--charcoal);
+  color:#fff;
+  border:none;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  margin-top:10px;
+  box-shadow:0 10px 20px rgba(0,0,0,0.1);
+  min-height:52px;
+  transition:0.2s;
+}
+
+.primary-btn:hover{
+  transform:scale(1.02);
+}
+
+/* MOBILE CONSTRAINTS (from first file) */
+@media (max-width:850px){
+  .container{
+    flex-direction:column;
+    height: auto;
+    max-height: 91vh;
+    width: 85%;
+    border-radius:32px;
+    margin: 0;
+    transform: translateY(-30px);
+  }
+
+  .right{
+    width:100%;
+    padding: 22px 22px 12px 22px;
+    order:1;
+    flex: 0;
+    border-radius: 32px 32px 0 0;
+  }
+
+  .left{
+    width:100%;
+    padding: 10px 22px 18px 22px;
+    text-align:center;
+    order:2;
+    flex: 0;
+    background:linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(225,217,188,0.1) 100%);
+    border-radius: 0 0 32px 32px;
+  }
+
+  .text-stage{ min-height:auto; margin-bottom:5px; }
+  .left h1{ font-size:15px; margin-bottom: 2px; }
+  .left p{ font-size:10px; margin-bottom:8px; line-height: 1.3; }
+  .btn-toggle{ margin:0 auto; padding: 7px 16px; font-size: 11px; }
+
+  .brand-section{ margin-bottom: 12px; justify-content: center; gap: 8px; }
+  .brand-section img { width: 24px; height: 24px; }
+  .brand-section h3 { font-size: 13px; }
+
+  .tab-nav{ margin-bottom: 18px; padding: 4px; }
+  .tab-item { padding: 8px; font-size: 11px; }
+  
+  .input-group{ margin-bottom: 10px; }
+  .input-group input{ padding: 12px 14px; font-size: 13px; border-radius: 12px; }
+  .input-group label{ font-size: 9px; margin-bottom: 3px; }
+  
+  .primary-btn{ 
+    padding: 12px; 
+    font-size: 14px; 
+    min-height: 48px; 
+    margin-top: 5px;
+    box-shadow: none;
+  }
+
+  .input-row{ flex-direction:column; gap:0; }
+  .overflow-wrapper { padding-bottom: 5px; }
+}
+
+@media (max-height: 620px) and (max-width: 850px) {
+  .container { transform: translateY(-20px) scale(0.95); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="fullscreen-wrapper">
+
+<div class="bg-glow"></div>
+
+<div class="container">
+
+<div class="left">
+  <div class="text-stage" id="textStage">
+    <h1 id="leftTitle">Hello,<br>Welcome!</h1>
+    <p id="leftDesc">Sign up today and experience the difference.</p>
+  </div>
+  <button class="btn-toggle" id="toggleBtn">Join Now</button>
+</div>
+
+<div class="right">
+  <div class="card">
+
+    <div class="brand-section">
+      <img src="{{ url_for('static', filename='Images/chit_chat.png') }}" alt="Logo">
+      <h3>CHIT CHAT</h3>
+    </div>
+
+    <div class="tab-nav">
+      <div class="tab-item active" id="tabLogin">LOGIN</div>
+      <div class="tab-item" id="tabRegister">REGISTER</div>
+    </div>
+
+    <div class="overflow-wrapper">
+      <div class="form-slider" id="slider">
+
+        <!-- LOGIN -->
+        <div class="form-page">
+          <form method="POST" action="/login">
+            <div class="input-group">
+              <label>Phone Number</label>
+              <input type="text" name="phone" placeholder="+92 000 0000000" required>
+            </div>
+            <div class="input-group">
+              <label>Password</label>
+              <div class="input-wrapper">
+                <input type="password" name="password" id="loginPass" placeholder="••••••••" required>
+                <span class="pass-toggle" onclick="togglePassword()">SHOW</span>
+              </div>
+            </div>
+            <button type="submit" class="primary-btn">Log IN</button>
+          </form>
+        </div>
+
+        <!-- REGISTER -->
+        <div class="form-page">
+          <form method="POST" action="/register">
+            <div class="input-row">
+              <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Username" required>
+              </div>
+              <div class="input-group">
+                <label>Phone</label>
+                <input type="text" name="phone" placeholder="+92..." required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Email Address</label>
+              <input type="email" name="email" placeholder="hello@world.com" required>
+            </div>
+            <div class="input-group">
+              <label>Set Password</label>
+              <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="primary-btn">CREATE ACCOUNT</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const slider = document.getElementById('slider');
+const tabLogin = document.getElementById('tabLogin');
+const tabRegister = document.getElementById('tabRegister');
+const toggleBtn = document.getElementById('toggleBtn');
+const leftTitle = document.getElementById('leftTitle');
+const leftDesc = document.getElementById('leftDesc');
+const textStage = document.getElementById('textStage');
+
+let isRegister = false;
+
+function animateTextChange(callback){
+  textStage.classList.add('fade-out');
+  setTimeout(()=>{
+    callback();
+    textStage.classList.remove('fade-out');
+    textStage.classList.add('fade-in');
+    setTimeout(()=>{
+      textStage.classList.remove('fade-in');
+    },400);
+  },300);
+}
+
+function setMode(register){
+  isRegister = register;
+  slider.style.transform = register ? 'translateX(-50%)' : 'translateX(0%)';
+  tabLogin.classList.toggle('active', !register);
+  tabRegister.classList.toggle('active', register);
+  toggleBtn.textContent = register ? "Login" : "Join Now";
+
+  animateTextChange(()=>{
+    leftTitle.innerHTML = register ? "Start New <br>Story." : "Hello,<br>Welcome!";
+    leftDesc.textContent = register 
+      ? "Become part of the most secure and aesthetic chat circle on the planet."
+      : "Sign up today and experience the difference.";
+  });
+}
+
+tabLogin.onclick = ()=> setMode(false);
+tabRegister.onclick = ()=> setMode(true);
+toggleBtn.onclick = ()=> setMode(!isRegister);
+
+function togglePassword(){
+  const input = document.getElementById('loginPass');
+  const toggle = document.querySelector('.pass-toggle');
+  if(input.type === "password"){
+    input.type = "text";
+    toggle.textContent = "HIDE";
+  }else{
+    input.type = "password";
+    toggle.textContent = "SHOW";
+  }
+}
+
+setMode(false);
+</script>
+
+</body>
+</html>

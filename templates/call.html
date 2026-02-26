@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chit Chat Call</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text: #30364F;
+    --muted: #ACBAC4;
+    --sand: #E1D9BC;
+    --ivory: #F0F0DB;
+    --card-radius: 20px;
+    --shadow: 0 18px 50px rgba(48,54,79,0.08);
+    --danger: #FF4747;
+    --success: #4ADE80;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ivory);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 20px;
+  }
+  .main-card {
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .display-area {
+    flex: 1;
+    border-radius: 15px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #30364F 0%, #1A1E2E 100%);
+  }
+  .timer-pill, .connection-status {
+    position: absolute;
+    top: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-weight: 500;
+    font-size: 14px;
+    z-index: 10;
+  }
+  .timer-pill {
+    left: 20px;
+  }
+  .connection-status {
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+  .status-dot.connecting {
+    background: #FFA500;
+    animation: pulse 1s infinite;
+  }
+  .status-dot.ended {
+    background: var(--danger);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  #remoteVideo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  #localVideo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 210px;
+    border-radius: 12px;
+    border: 3px solid white;
+    z-index: 5;
+    background: #444;
+    object-fit: cover;
+  }
+  .avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 2;
+  }
+  .avatar-container.hidden {
+    display: none;
+  }
+  .profile-logo {
+    width: 150px;
+    height: 150px;
+    background: var(--sand);
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .profile-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .user-label {
+    color: white;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .incoming-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+  }
+  .incoming-overlay.active {
+    display: flex;
+  }
+  .incoming-title {
+    color: white;
+    font-size: 24px;
+  }
+  .incoming-actions {
+    display: flex;
+    gap: 30px;
+  }
+  .action-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-btn.accept {
+    background: var(--success);
+    color: white;
+  }
+  .action-btn.decline {
+    background: var(--danger);
+    color: white;
+  }
+  .footer-controls {
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+  .btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ivory);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .btn:hover {
+    transform: scale(1.05);
+  }
+  .btn.active {
+    background: var(--text);
+    color: white;
+  }
+  .btn.end {
+    background: var(--danger);
+    color: white;
+  }
+  .hidden {
+    display: none !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="main-card">
+  <div class="display-area">
+    <div class="timer-pill" id="timer">00:00</div>
+    <div class="connection-status">
+      <span class="status-dot connecting" id="statusDot"></span>
+      <span id="statusText">Connecting</span>
+    </div>
+
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+
+    <div class="avatar-container" id="avatarBox">
+      <div class="profile-logo" id="avatarImg">
+        <svg viewBox="0 0 24 24" width="80" fill="#30364F"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </div>
+      <div class="user-label" id="userName">User</div>
+    </div>
+
+    <div class="incoming-overlay" id="incomingOverlay">
+      <div class="incoming-title" id="incomingText">Incoming Call...</div>
+      <div class="incoming-actions">
+        <button class="action-btn accept" onclick="acceptCall()">Accept</button>
+        <button class="action-btn decline" onclick="endCall()">Decline</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-controls">
+    <button class="btn" id="muteBtn" onclick="toggleMute()">Mute</button>
+    <button class="btn" id="videoBtn" onclick="toggleVideo()">Video</button>
+    <button class="btn end" onclick="endCall()">End</button>
+  </div>
+</div>
+
+<script>
+  const CONFIG = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  };
+
+  let localStream = null;
+  let peerConnection = null;
+  let socket = null;
+  let callTimer = null;
+  let seconds = 0;
+  let pendingOffer = null;
+  let isMuted = false;
+  let isVideoOff = false;
+
+  // Generate random IDs if not provided in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const myId = urlParams.get('myId') || 'user_' + Math.random().toString(36).substr(2, 9);
+  const peerId = urlParams.get('peerId') || 'peer_' + Math.random().toString(36).substr(2, 9);
+  const isCaller = urlParams.get('isCaller') === 'true';
+  const callRoom = [myId, peerId].sort().join('_');
+
+  // Simulated Socket.IO for standalone functionality
+  class SimulatedSocket {
+    constructor() {
+      this.listeners = {};
+      this.connected = false;
+      this.room = null;
+    }
+
+    on(event, callback) {
+      if (!this.listeners[event]) {
+        this.listeners[event] = [];
+      }
+      this.listeners[event].push(callback);
+    }
+
+    emit(event, data) {
+      console.log('Emit:', event, data);
+      
+      // Simulate peer behavior
+      if (event === 'join_call_room') {
+        this.room = data.room;
+        this.connected = true;
+        setTimeout(() => {
+          this.trigger('connect');
+          // Simulate peer ready after short delay
+          setTimeout(() => {
+            this.trigger('peer_ready');
+          }, 1000);
+        }, 500);
+      }
+      
+      if (event === 'call_offer') {
+        // Simulate receiving offer on another tab/instance
+        setTimeout(() => {
+          this.trigger('call_offer', data);
+        }, 500);
+      }
+      
+      if (event === 'call_answer') {
+        setTimeout(() => {
+          this.trigger('call_answer', data);
+        }, 500);
+      }
+      
+      if (event === 'ice_candidate') {
+        setTimeout(() => {
+          this.trigger('ice_candidate', data);
+        }, 100);
+      }
+      
+      if (event === 'call_ended') {
+        setTimeout(() => {
+          this.trigger('call_ended', data);
+        }, 500);
+      }
+    }
+
+    trigger(event, data) {
+      if (this.listeners[event]) {
+        this.listeners[event].forEach(callback => callback(data));
+      }
+    }
+  }
+
+  async function init() {
+    // Use simulated socket for standalone functionality
+    socket = new SimulatedSocket();
+    
+    socket.on('connect', () => {
+      console.log('Connected to room:', callRoom);
+      socket.emit('join_call_room', { room: callRoom });
+      
+      // Show incoming overlay for callee
+      if (!isCaller) {
+        document.getElementById('incomingOverlay').classList.add('active');
+        updateStatus('connecting', 'Incoming Call...');
+      }
+    });
+
+    setupSocketListeners();
+    
+    // Auto-start for caller
+    if (isCaller) {
+      updateStatus('connecting', 'Calling...');
+    }
+  }
+
+  function setupSocketListeners() {
+    // Peer enters the room
+    socket.on('peer_ready', () => {
+      console.log('Peer is ready');
+      if (isCaller && !peerConnection) {
+        startCall();
+      }
+    });
+
+    // Receive WebRTC Offer
+    socket.on('call_offer', async (data) => {
+      if (data.caller === myId) return;
+      console.log('Received offer');
+      pendingOffer = data;
+      
+      // If callee already clicked accept, handle immediately
+      if (!document.getElementById('incomingOverlay').classList.contains('active')) {
+        await handleIncomingOffer(data);
+      }
+    });
+
+    // Receive WebRTC Answer
+    socket.on('call_answer', async (data) => {
+      console.log('Received answer');
+      if (peerConnection) {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+      }
+    });
+
+    // ICE Candidates
+    socket.on('ice_candidate', async (data) => {
+      if (peerConnection && data.candidate) {
+        try {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (e) {
+          console.error('Error adding ICE candidate:', e);
+        }
+      }
+    });
+
+    socket.on('call_ended', () => {
+      cleanup();
+      window.location.reload();
+    });
+  }
+
+  async function startCall() {
+    try {
+      await setupMedia();
+      createPeerConnection();
+      
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('call_offer', { offer: offer, caller: myId, room: callRoom });
+    } catch (err) {
+      console.error('Error starting call:', err);
+      updateStatus('ended', 'Error');
+    }
+  }
+
+  async function acceptCall() {
+    document.getElementById('incomingOverlay').classList.remove('active');
+    if (pendingOffer) {
+      await handleIncomingOffer(pendingOffer);
+    }
+  }
+
+  async function handleIncomingOffer(data) {
+    try {
+      await setupMedia();
+      createPeerConnection();
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('call_answer', { answer: answer, callee: myId, room: callRoom });
+    } catch (err) {
+      console.error('Error handling offer:', err);
+    }
+  }
+
+  async function setupMedia() {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      document.getElementById('localVideo').srcObject = localStream;
+    } catch (err) {
+      console.error('Error accessing media:', err);
+      alert('Could not access camera/microphone. Please allow permissions.');
+    }
+  }
+
+  function createPeerConnection() {
+    peerConnection = new RTCPeerConnection(CONFIG);
+    
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+
+    peerConnection.ontrack = (event) => {
+      console.log('Received remote track');
+      document.getElementById('remoteVideo').srcObject = event.streams[0];
+      document.getElementById('avatarBox').classList.add('hidden');
+      updateStatus('connected', 'Connected');
+      startTimer();
+    };
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('ice_candidate', { 
+          candidate: event.candidate, 
+          room: callRoom 
+        });
+      }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      console.log('Connection state:', peerConnection.connectionState);
+      if (peerConnection.connectionState === 'connected') {
+        updateStatus('connected', 'Connected');
+      } else if (peerConnection.connectionState === 'disconnected' || 
+                 peerConnection.connectionState === 'failed') {
+        updateStatus('ended', 'Disconnected');
+      }
+    };
+  }
+
+  function startTimer() {
+    if (callTimer) return;
+    callTimer = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${m}:${s}`;
+    }, 1000);
+  }
+
+  function updateStatus(state, text) {
+    const dot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    
+    dot.className = 'status-dot ' + state;
+    statusText.textContent = text;
+  }
+
+  function endCall() {
+    socket.emit('call_ended', { room: callRoom });
+    cleanup();
+    window.location.reload();
+  }
+
+  function cleanup() {
+    if (callTimer) {
+      clearInterval(callTimer);
+      callTimer = null;
+    }
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
+  }
+
+  function toggleMute() {
+    if (!localStream) return;
+    const audioTrack = localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      isMuted = !audioTrack.enabled;
+      const btn = document.getElementById('muteBtn');
+      btn.textContent = isMuted ? 'Unmute' : 'Mute';
+      btn.classList.toggle('active', isMuted);
+    }
+  }
+
+  function toggleVideo() {
+    if (!localStream) return;
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      isVideoOff = !videoTrack.enabled;
+      const btn = document.getElementById('videoBtn');
+      btn.textContent = isVideoOff ? 'Video On' : 'Video';
+      btn.classList.toggle('active', isVideoOff);
+      
+      // Show/hide local video
+      document.getElementById('localVideo').style.opacity = isVideoOff ? '0' : '1';
+    }
+  }
+
+  // Initialize on load
+  init();
+</script>
+</body>
+</html>

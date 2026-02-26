@@ -1,0 +1,8 @@
+flask
+flask-socketio
+flask-mail
+mysql-connector-python
+python-dotenv
+geventgit add .
+gevent-websocket
+gunicorn
