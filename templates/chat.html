@@ -2019,6 +2019,21 @@ font-size: 0.95rem;
         }
     });
     // Call button handlers - open call.html in new window
+    function initiateCall(type) {
+    if (!currentReceiver || !myId) return;
+    const room = 'chat_' + Math.min(myId || 0, currentReceiver) + '_' + Math.max(myId || 0, currentReceiver);
+    socket.emit('incoming_call_notification', { caller: myId, callee: currentReceiver, room: room });
+    const url = `/call.html?myId=${encodeURIComponent(myId)}&peerId=${encodeURIComponent(currentReceiver)}&isCaller=true&type=${encodeURIComponent(type)}`;
+    window.open(url, '_blank', 'noopener,noreferrer,width=900,height=700');
+}
+
+document.querySelectorAll('.call-btn').forEach((btn, idx) => {
+    if (idx === 0) {
+        btn.addEventListener('click', () => { initiateCall('audio'); });
+    } else {
+        btn.addEventListener('click', () => { initiateCall('video'); });
+    }
+});
 
   </script>
 </body>
